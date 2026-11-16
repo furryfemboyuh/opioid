@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using OpioidMultitool.Core;
+using static OpioidMultitool.Core.Ui;
 
 namespace OpioidMultitool.Scenes;
 
@@ -28,7 +29,7 @@ internal static class TitleScreen
 
     private static readonly string[] Options =
     [
-        "Placeholder Option 1",
+        "Test Website",
         "Placeholder Option 2",
         "Placeholder Option 3",
         "Placeholder Option 4",
@@ -107,6 +108,14 @@ internal static class TitleScreen
                 {
                     Animate(sel, "", fadeIn: false);
                     return;
+                }
+                if (activate == 0)
+                {
+                    WebsiteTester.Run();
+                    Input.Drain();
+                    status = "";
+                    Draw(sel, status, 1f, fullClear: true);
+                    continue;
                 }
                 status = $"{Options[activate]} isn't implemented yet.";
             }
@@ -225,17 +234,6 @@ internal static class TitleScreen
         sb.Append(Term.Reset);
         Term.Write(sb);
         Term.Flush();
-    }
-
-    private static void Line(StringBuilder sb, int row) =>
-        sb.Append(Term.Reset).Append(Term.MoveTo(row, 0)).Append(Term.ClearLine);
-
-    private static void Centered(StringBuilder sb, int row, int w, string text, string style)
-    {
-        Line(sb, row);
-        if (text.Length == 0) return;
-        if (text.Length > w - 1) text = text[..Math.Max(0, w - 1)];
-        sb.Append(Term.MoveTo(row, Math.Max(0, (w - text.Length) / 2))).Append(style).Append(text).Append(Term.Reset);
     }
 
     private static string[] BuildBanner()
