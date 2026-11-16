@@ -14,7 +14,7 @@ namespace OpioidMultitool.Scenes;
 internal sealed class WebsiteTester
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(0.1);   // 10 requests every 0.1 ms
-    private const int MaxInFlight = 4096; // slow site: skip a tick instead of piling up requests
+    private const int MaxInFlight = 16384; // slow site: skip a tick instead of piling up requests
     private const int Burst = 10;         // requests fired per interval
     private const int MaxLog = 200;
 
