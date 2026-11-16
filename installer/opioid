@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# opioid - launcher for Opioid Multitool
+#
+# Every run: asks GitHub for the newest release, downloads it if it isn't cached
+# yet, then runs it. If GitHub can't be reached, runs the newest cached version
+# and tells the app it's offline (the title screen shows a warning).
+#
+#   opioid             update (if possible) and run
+#   opioid --update    only check for / download the newest version
+#   opioid --versions  list cached versions
+#   opioid --uninstall remove the launcher and all cached versions
+
+set -uo pipefail
+
+REPO="${OPIOID_REPO:-furryfemboyuh/opioid-multitool}"
+ASSET="OpioidMultitool-linux-x64"
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}/opioid"
+VERSIONS="$DATA/versions"
+KEEP="${OPIOID_KEEP_VERSIONS:-5}"   # how many old versions to keep cached
+
+red()  { printf '\033[1;31m%s\033[0m\n' "$*" >&2; }
+dim()  { printf '\033[2m%s\033[0m\n' "$*" >&2; }
+
+mkdir -p "$VERSIONS"
+
+# Newest cached version that actually has a runnable binary.
+latest_cached() {
+    local v
+    for v in $(ls -1 "$VERSIONS" 2>/dev/null | grep -v '^\.' | sort -V -r); do
+        if [ -x "$VERSIONS/$v/$ASSET" ]; then echo "$v"; return; fi
+    done
+}
+
+prune_old() {
+    ls -1 "$VERSIONS" 2>/dev/null | grep -v '^\.' | sort -V | head -n "-$KEEP" |
+        while read -r v; do rm -rf "${VERSIONS:?}/$v"; done
+}
+
+case "${1:-}" in
+    --versions)
+        current="$(latest_cached)"
+        ls -1 "$VERSIONS" 2>/dev/null | grep -v '^\.' | sort -V -r | while read -r v; do
+            if [ "$v" = "$current" ]; then echo "$v  (newest)"; else echo "$v"; fi
+        done
+        exit 0 ;;
+    --uninstall)
+        rm -rf "$DATA"
+        rm -f "$0"
+        echo "Opioid Multitool removed."
+        exit 0 ;;
+esac
+
+# --- Ask GitHub for the newest release ---
+status="online"
+tag=""
+url=""
+json="$(curl -fsSL --max-time 6 -H 'Accept: application/vnd.github+json' \
+        "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null)" || status="offline"
+
+if [ "$status" = "online" ]; then
+    tag="$(printf '%s\n' "$json" | sed -n 's/^ *"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)"
+    url="$(printf '%s\n' "$json" | grep -o "\"browser_download_url\": *\"[^\"]*/$ASSET\"" |
+           sed 's/.*"\(https[^"]*\)"$/\1/' | head -n1)"
+    # Only accept sane tag names (they become directory names).
+    if ! [[ "$tag" =~ ^[A-Za-z0-9._-]+$ ]] || [ -z "$url" ]; then
+        status="offline"
+    fi
+fi
+
+# --- Download it if we don't have it yet ---
+if [ "$status" = "online" ] && [ ! -x "$VERSIONS/$tag/$ASSET" ]; then
+    dim "Downloading Opioid Multitool $tag..."
+    tmp="$(mktemp -d "$VERSIONS/.download.XXXXXX")"
+    if curl -fL --progress-bar --max-time 600 -o "$tmp/$ASSET" "$url"; then
+        chmod +x "$tmp/$ASSET"
+        rm -rf "${VERSIONS:?}/$tag"
+        mv "$tmp" "$VERSIONS/$tag"
+        prune_old
+    else
+        red "Download failed, falling back to a cached version."
+        rm -rf "$tmp"
+        status="offline"
+    fi
+fi
+
+if [ "$status" = "offline" ]; then
+    tag="$(latest_cached)"
+    if [ -z "$tag" ]; then
+        red "Couldn't reach GitHub ($REPO) and no cached version exists yet."
+        red "Connect to the internet and run 'opioid' again."
+        exit 1
+    fi
+fi
+
+[ "${1:-}" = "--update" ] && { echo "Opioid Multitool $tag ($status)"; exit 0; }
+
+export OPIOID_VERSION="$tag"
+export OPIOID_UPDATE_STATUS="$status"
+exec "$VERSIONS/$tag/$ASSET" "$@"
