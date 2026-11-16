@@ -13,8 +13,9 @@ namespace OpioidMultitool.Scenes;
 /// </summary>
 internal sealed class WebsiteTester
 {
-    private const int IntervalMs = 1;   // 2 requests per second
-    private const int MaxInFlight = 4;    // slow site: skip a tick instead of piling up requests
+    private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(0.1);   // 10 requests every 0.1 ms
+    private const int MaxInFlight = 4096; // slow site: skip a tick instead of piling up requests
+    private const int Burst = 10;         // requests fired per interval
     private const int MaxLog = 200;
 
     private static readonly Rgb Title = new(255, 45, 45);
@@ -178,10 +179,12 @@ internal sealed class WebsiteTester
 
     private async Task Schedule(HttpClient http, CancellationToken ct)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(IntervalMs));
-        try
+        long period = (long)(Interval.TotalMilliseconds * Stopwatch.Frequency / 1000.0);
+        long next = Stopwatch.GetTimestamp();
+
+        while (!ct.IsCancellationRequested)
         {
-            do
+            for (int i = 0; i < Burst && !ct.IsCancellationRequested; i++)
             {
                 if (Volatile.Read(ref _inFlight) >= MaxInFlight)
                 {
@@ -191,9 +194,11 @@ internal sealed class WebsiteTester
                 Interlocked.Increment(ref _inFlight);
                 _ = Send(http, ct);
             }
-            while (await timer.WaitForNextTickAsync(ct));
+
+            next += period;
+            while (Stopwatch.GetTimestamp() < next && !ct.IsCancellationRequested)
+                Thread.SpinWait(50);
         }
-        catch (OperationCanceledException) { }
     }
 
     private async Task Send(HttpClient http, CancellationToken ct)
@@ -273,7 +278,6 @@ internal sealed class WebsiteTester
         Header(sb, 1, w);
 
         Field(sb, 4, col, w, "Target", _uri.ToString(), Value);
-        Field(sb, 5, col, w, "Rate", "2 requests / second", Value);
         Field(sb, 6, col, w, "Status",
             (running ? "● RUNNING  " : "■ STOPPED  ") + $"{(int)elapsed.TotalMinutes:00}:{elapsed.Seconds:00}",
             running ? Good : Warn);
