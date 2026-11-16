@@ -27,16 +27,7 @@ internal static class TitleScreen
         return "v" + (plus >= 0 ? v[..plus] : v);
     }
 
-    private static readonly string[] Options =
-    [
-        "DDOS",
-        "Placeholder Option 2",
-        "Placeholder Option 3",
-        "Placeholder Option 4",
-        "Placeholder Option 5",
-        "Placeholder Option 6",
-        "Exit",
-    ];
+    private static readonly string[] Options = MenuOptions.Items;
 
     private static readonly Rgb BannerTop = new(255, 120, 200);
     private static readonly Rgb BannerBottom = new(190, 30, 130);

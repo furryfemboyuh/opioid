@@ -35,10 +35,12 @@ jobs:
       - name: Publish
         run: |
           for rid in linux-x64 win-x64; do
+            # Trimming is off: Avalonia (the GUI) leans on reflection for styles and the
+            # XAML loader, and trimming it produces a binary that crashes at runtime.
             dotnet publish OpioidMultitool.csproj -c Release -r "$rid" --self-contained \
               -p:PublishSingleFile=true \
               -p:IncludeNativeLibrariesForSelfExtract=true \
-              -p:PublishTrimmed=true \
+              -p:PublishTrimmed=false \
               -p:DebugType=none \
               -p:Version="$VERSION" \
               -o "out/$rid"

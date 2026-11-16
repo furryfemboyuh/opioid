@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="OpioidMultitool.Gui.Views.HomeView">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.banner">
+            <Style.Animations>
+                <Animation Duration="0:0:3" IterationCount="INFINITE" Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0.86" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Opacity" Value="1.0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0.86" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Banner -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="6" Margin="0,8,0,26">
+            <TextBlock Text="OPIOID" Classes="banner" HorizontalAlignment="Center"
+                       FontFamily="{DynamicResource FontDisplay}" FontSize="68" FontWeight="Bold"
+                       Foreground="{DynamicResource AccentPink}">
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="#FF78C8" BlurRadius="36" OffsetX="0" OffsetY="0" Opacity="0.9" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock Text="✦  M U L T I T O O L  ✦" HorizontalAlignment="Center"
+                       FontFamily="{DynamicResource FontMono}" FontSize="15"
+                       Foreground="#D2AFD7" />
+        </StackPanel>
+
+        <!-- Menu -->
+        <Border Grid.Row="1" Classes="glass" Padding="28" MaxWidth="460" VerticalAlignment="Top">
+            <StackPanel Name="MenuItems" />
+        </Border>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="4,20,4,0">
+            <TextBlock Name="StatusText" Grid.Column="0" Foreground="{DynamicResource AccentBright}"
+                       FontFamily="{DynamicResource FontMono}" FontSize="13" Opacity="0" />
+            <TextBlock Grid.Column="1" Text="↑/↓ or click   ·   ESC/00 exit" Foreground="{DynamicResource Dim}"
+                       FontFamily="{DynamicResource FontMono}" FontSize="12" />
+        </Grid>
+    </Grid>
+</UserControl>

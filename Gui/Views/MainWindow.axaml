@@ -1,0 +1,137 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OpioidMultitool.Gui.Views.MainWindow"
+        Title="Opioid Multitool"
+        Width="1040" Height="700"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur,Blur,Transparent"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Window.Resources>
+        <RadialGradientBrush x:Key="Blob1Brush" Center="50%,50%" RadiusX="50%" RadiusY="50%">
+            <GradientStop Offset="0" Color="#88FF78C8" />
+            <GradientStop Offset="1" Color="#00FF78C8" />
+        </RadialGradientBrush>
+        <RadialGradientBrush x:Key="Blob2Brush" Center="50%,50%" RadiusX="50%" RadiusY="50%">
+            <GradientStop Offset="0" Color="#70BE1E82" />
+            <GradientStop Offset="1" Color="#00BE1E82" />
+        </RadialGradientBrush>
+        <RadialGradientBrush x:Key="Blob3Brush" Center="50%,50%" RadiusX="50%" RadiusY="50%">
+            <GradientStop Offset="0" Color="#55FF2D55" />
+            <GradientStop Offset="1" Color="#00FF2D55" />
+        </RadialGradientBrush>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Ellipse.blob1">
+            <Style.Animations>
+                <Animation Duration="0:0:18" IterationCount="INFINITE" Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="TranslateTransform.X" Value="-120" />
+                        <Setter Property="TranslateTransform.Y" Value="-60" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="TranslateTransform.X" Value="140" />
+                        <Setter Property="TranslateTransform.Y" Value="80" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="TranslateTransform.X" Value="-120" />
+                        <Setter Property="TranslateTransform.Y" Value="-60" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Ellipse.blob2">
+            <Style.Animations>
+                <Animation Duration="0:0:24" IterationCount="INFINITE" Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="TranslateTransform.X" Value="160" />
+                        <Setter Property="TranslateTransform.Y" Value="40" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="TranslateTransform.X" Value="-140" />
+                        <Setter Property="TranslateTransform.Y" Value="-100" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="TranslateTransform.X" Value="160" />
+                        <Setter Property="TranslateTransform.Y" Value="40" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Ellipse.blob3">
+            <Style.Animations>
+                <Animation Duration="0:0:21" IterationCount="INFINITE" Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="TranslateTransform.X" Value="0" />
+                        <Setter Property="TranslateTransform.Y" Value="120" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="TranslateTransform.X" Value="60" />
+                        <Setter Property="TranslateTransform.Y" Value="-120" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="TranslateTransform.X" Value="0" />
+                        <Setter Property="TranslateTransform.Y" Value="120" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <Style Selector="TextBlock.glowTitle">
+            <Setter Property="FontFamily" Value="{DynamicResource FontDisplay}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentPink}" />
+        </Style>
+    </Window.Styles>
+
+    <!-- Outer border clips everything to rounded corners and gives the whole window its glow. -->
+    <Border CornerRadius="22" ClipToBounds="True" Background="#DC0A0610"
+            BorderBrush="#40FF78C8" BorderThickness="1"
+            BoxShadow="0 0 60 0 #40FF78C8">
+        <Panel>
+            <!-- ================= Animated glow blobs ================= -->
+            <Canvas ClipToBounds="True">
+                <Ellipse Classes="blob1" Width="420" Height="420" Canvas.Left="-120" Canvas.Top="-100"
+                         Fill="{StaticResource Blob1Brush}">
+                    <Ellipse.RenderTransform><TranslateTransform /></Ellipse.RenderTransform>
+                    <Ellipse.Effect><BlurEffect Radius="60" /></Ellipse.Effect>
+                </Ellipse>
+                <Ellipse Classes="blob2" Width="380" Height="380" Canvas.Left="640" Canvas.Top="260"
+                         Fill="{StaticResource Blob2Brush}">
+                    <Ellipse.RenderTransform><TranslateTransform /></Ellipse.RenderTransform>
+                    <Ellipse.Effect><BlurEffect Radius="70" /></Ellipse.Effect>
+                </Ellipse>
+                <Ellipse Classes="blob3" Width="320" Height="320" Canvas.Left="300" Canvas.Top="420"
+                         Fill="{StaticResource Blob3Brush}">
+                    <Ellipse.RenderTransform><TranslateTransform /></Ellipse.RenderTransform>
+                    <Ellipse.Effect><BlurEffect Radius="55" /></Ellipse.Effect>
+                </Ellipse>
+            </Canvas>
+
+            <!-- ================= Foreground layout ================= -->
+            <Grid RowDefinitions="42,*">
+
+                <!-- Custom title bar -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Background="#18000000"
+                      PointerPressed="OnTitleBarPointerPressed">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="16,0,0,0" Spacing="8">
+                        <TextBlock Text="OPIOID" Classes="glowTitle" FontSize="14" FontWeight="Bold" />
+                        <TextBlock Text="MULTITOOL" FontFamily="{DynamicResource FontMono}"
+                                   Foreground="{DynamicResource Dim}" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,6,0">
+                        <Button Classes="chrome" Content="&#x2013;" Click="OnMinimizeClick" />
+                        <Button Classes="chrome close" Content="&#x2715;" Click="OnCloseClick" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Page host -->
+                <TransitioningContentControl Grid.Row="1" Name="ViewHost" Margin="36" />
+            </Grid>
+        </Panel>
+    </Border>
+</Window>

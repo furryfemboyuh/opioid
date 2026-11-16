@@ -1,12 +1,16 @@
 using OpioidMultitool.Core;
+using OpioidMultitool.Gui;
 using OpioidMultitool.Scenes;
 
 namespace OpioidMultitool;
 
 internal static class Program
 {
-    private static int Main()
+    private static int Main(string[] args)
     {
+        if (args.Contains("--gui"))
+            return AppBootstrap.Run(args.Where(a => a != "--gui").ToArray());
+
         try { Console.Title = "Opioid Multitool"; } catch { /* not supported everywhere */ }
 
         Native.ForceFullscreen();

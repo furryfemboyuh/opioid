@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="OpioidMultitool.Gui.Views.WebsiteTesterView">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.statLabel">
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource Dim}" />
+        </Style>
+        <Style Selector="TextBlock.statValue">
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="TextBlock.logRow">
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="12.5" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,18">
+            <TextBlock Text="D D O S" FontFamily="{DynamicResource FontDisplay}" FontSize="30" FontWeight="Bold"
+                       Foreground="{DynamicResource AccentRed}">
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="#FF2D55" BlurRadius="28" Opacity="0.85" />
+                </TextBlock.Effect>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Body: swaps between the URL prompt and the live run -->
+        <Grid Grid.Row="1" Name="Body" RowDefinitions="*">
+
+            <!-- ============ URL prompt ============ -->
+            <Border Name="PromptPanel" Classes="glass" Padding="30" MaxWidth="560" VerticalAlignment="Top">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="Target URL" FontFamily="{DynamicResource FontMono}" Foreground="{DynamicResource Dim}" FontSize="13" />
+                    <TextBox Name="UrlBox" Classes="url" Watermark="example.com" KeyDown="OnUrlKeyDown" />
+                    <TextBlock Name="PromptError" Foreground="{DynamicResource AccentRed}"
+                               FontFamily="{DynamicResource FontMono}" FontSize="12.5" IsVisible="False" />
+                    <TextBlock Text="https:// is added automatically if you leave it out."
+                               Foreground="{DynamicResource Dim}" FontFamily="{DynamicResource FontMono}" FontSize="12" />
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                        <Button Content="START" Classes="primary" Click="OnStartClick" />
+                        <Button Content="BACK" Classes="menuItem exit" Padding="18,8" Click="OnBackClick" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ============ Live run ============ -->
+            <Grid Name="RunPanel" IsVisible="False" RowDefinitions="Auto,Auto,*,Auto">
+
+                <Border Classes="glass" Padding="20,16" Grid.Row="0" Margin="0,0,0,14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Name="TargetText" Classes="statLabel" />
+                            <TextBlock Name="LatencyText" Classes="statLabel" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <TextBlock Name="ClockText" Classes="statValue" Foreground="{DynamicResource AccentBright}" />
+                            <Button Name="StopButton" Content="STOP" Classes="primary" Click="OnStopClick" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="glass" Padding="18,14" Grid.Row="1" Margin="0,0,0,14">
+                    <StackPanel Orientation="Horizontal" Spacing="28">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="SENT" Classes="statLabel" />
+                            <TextBlock Name="SentText" Classes="statValue" Foreground="#E8D8E4" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="OK" Classes="statLabel" />
+                            <TextBlock Name="OkText" Classes="statValue" Foreground="#5AC878" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="HTTP ERR" Classes="statLabel" />
+                            <TextBlock Name="HttpErrText" Classes="statValue" Foreground="#E6B43C" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="FAILED" Classes="statLabel" />
+                            <TextBlock Name="FailedText" Classes="statValue" Foreground="#FF3C3C" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="glass" Padding="14,10" Grid.Row="2">
+                    <ScrollViewer Name="LogScroll">
+                        <ItemsControl Name="LogItems" />
+                    </ScrollViewer>
+                </Border>
+
+                <TextBlock Grid.Row="3" Margin="2,10,0,0" Text="ESC or STOP to end the run"
+                           Foreground="{DynamicResource Dim}" FontFamily="{DynamicResource FontMono}" FontSize="12" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

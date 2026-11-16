@@ -1,0 +1,133 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="OpioidMultitool.Gui.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <!-- ================= Glass panel ================= -->
+        <Style Selector="Border.glass">
+            <Setter Property="Background" Value="#33140022" />
+            <Setter Property="BorderBrush" Value="#55FF78C8" />
+            <Setter Property="BorderThickness" Value="1.2" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="BoxShadow" Value="0 0 48 0 #33FF78C8, 0 8 32 0 #80000000" />
+        </Style>
+
+        <!-- ================= Glow nav / menu buttons ================= -->
+        <Style Selector="Button.menuItem">
+            <Setter Property="Background" Value="#14FFFFFF" />
+            <Setter Property="Foreground" Value="#E8D8E4" />
+            <Setter Property="BorderBrush" Value="#30FF78C8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="20,14" />
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Margin" Value="0,5" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.18" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+            <Setter Property="RenderTransform" Value="scale(1.0)" />
+        </Style>
+        <Style Selector="Button.menuItem:pointerover">
+            <Setter Property="Background" Value="#22FF78C8" />
+            <Setter Property="BorderBrush" Value="#AAFF9BDC" />
+            <Setter Property="RenderTransform" Value="translateX(6px)" />
+        </Style>
+        <Style Selector="Button.menuItem:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.97)" />
+        </Style>
+        <Style Selector="Button.menuItem.exit:pointerover">
+            <Setter Property="Background" Value="#22888888" />
+            <Setter Property="BorderBrush" Value="#AAAAAAAA" />
+        </Style>
+
+        <!-- ================= Primary action button (Start / Stop) ================= -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#2EFF2D55" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#FFFF2D55" />
+            <Setter Property="BorderThickness" Value="1.4" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="22,10" />
+            <Setter Property="FontFamily" Value="{DynamicResource FontDisplay}" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Effect">
+                <DropShadowEffect Color="#FF2D55" BlurRadius="24" OffsetX="0" OffsetY="0" Opacity="0.65" />
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#55FF2D55" />
+        </Style>
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.96)" />
+        </Style>
+
+        <!-- ================= Window chrome buttons ================= -->
+        <Style Selector="Button.chrome">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#B090A8" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.chrome:pointerover">
+            <Setter Property="Background" Value="#22FFFFFF" />
+        </Style>
+        <Style Selector="Button.chrome.close:pointerover">
+            <Setter Property="Background" Value="#CCE13C3C" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- ================= URL text box ================= -->
+        <Style Selector="TextBox.url">
+            <Setter Property="Background" Value="#22000000" />
+            <Setter Property="Foreground" Value="#F0E8EE" />
+            <Setter Property="CaretBrush" Value="#FF2D55" />
+            <Setter Property="BorderBrush" Value="#60FF2D55" />
+            <Setter Property="BorderThickness" Value="1.4" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="SelectionBrush" Value="#80FF2D55" />
+        </Style>
+        <Style Selector="TextBox.url:focus-within /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#FFFF2D55" />
+        </Style>
+    </Application.Styles>
+
+    <Application.Resources>
+        <FontFamily x:Key="FontDisplay">avares://OpioidMultitool/Gui/Assets/Fonts/Orbitron.ttf#Orbitron</FontFamily>
+        <FontFamily x:Key="FontMono">avares://OpioidMultitool/Gui/Assets/Fonts/JetBrainsMono.ttf#JetBrains Mono</FontFamily>
+
+        <SolidColorBrush x:Key="AccentPink">#FF78C8</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentMagenta">#BE1E82</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentBright">#FF9BDC</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentRed">#FF2D55</SolidColorBrush>
+        <SolidColorBrush x:Key="Ink">#0A0610</SolidColorBrush>
+        <SolidColorBrush x:Key="Dim">#8C7A94</SolidColorBrush>
+    </Application.Resources>
+</Application>

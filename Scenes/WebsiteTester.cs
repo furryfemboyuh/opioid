@@ -1,6 +1,4 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net;
 using System.Text;
 using OpioidMultitool.Core;
 using static OpioidMultitool.Core.Ui;
@@ -8,12 +6,12 @@ using static OpioidMultitool.Core.Ui;
 namespace OpioidMultitool.Scenes;
 
 /// <summary>
-/// Asks for a URL, then sends a GET request every 500 ms (2 per second) and shows
-/// live status codes, response times and failures until the user stops it.
+/// Asks for a URL, then uses <see cref="WebsiteTesterEngine"/> to send GET requests
+/// with many concurrent workers and shows live status codes, response times and
+/// failures until the user stops it.
 /// </summary>
 internal sealed class WebsiteTester
 {
-    private const int Workers = 1024;    // concurrent requests; throughput = Workers / RTT
     private const int MaxLog = 200;
 
     private static readonly Rgb Title = new(255, 45, 45);
@@ -24,17 +22,11 @@ internal sealed class WebsiteTester
     private static readonly Rgb Warn = new(230, 180, 60);
     private static readonly Rgb Bad = new(255, 60, 60);
 
-    private readonly record struct Result(DateTime At, int Status, string Text, long Ms, bool Error, bool Skipped);
+    private readonly WebsiteTesterEngine _engine;
+    private readonly ProbeStats _stats = new();
+    private readonly List<ProbeResult> _log = [];
 
-    private readonly Uri _uri;
-    private readonly ConcurrentQueue<Result> _incoming = new();
-    private readonly List<Result> _log = [];
-    private int _inFlight;
-
-    private int _sent, _ok, _httpErrors, _failed, _skipped;
-    private long _latSum, _latCount, _latMin = long.MaxValue, _latMax, _latLast;
-
-    private WebsiteTester(Uri uri) => _uri = uri;
+    private WebsiteTester(Uri uri) => _engine = new WebsiteTesterEngine(uri);
 
     public static void Run()
     {
@@ -64,7 +56,7 @@ internal sealed class WebsiteTester
                 case ConsoleKey.Escape:
                     return null;
                 case ConsoleKey.Enter:
-                    if (TryParseUrl(input.ToString(), out var uri)) return uri;
+                    if (WebsiteTesterEngine.TryParseUrl(input.ToString(), out var uri)) return uri;
                     error = "That doesn't look like a valid http(s) URL.";
                     break;
                 case ConsoleKey.Backspace:
@@ -80,18 +72,6 @@ internal sealed class WebsiteTester
                     break;
             }
         }
-    }
-
-    private static bool TryParseUrl(string text, out Uri uri)
-    {
-        text = text.Trim();
-        if (text.Length > 0 && !text.Contains("://")) text = "https://" + text;
-        if (Uri.TryCreate(text, UriKind.Absolute, out uri!) &&
-            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) &&
-            !string.IsNullOrEmpty(uri.Host))
-            return true;
-        uri = null!;
-        return false;
     }
 
     private static void DrawPrompt(string text, string error, bool fullClear)
@@ -126,19 +106,9 @@ internal sealed class WebsiteTester
 
     private void Test()
     {
-        using var http = new HttpClient(new SocketsHttpHandler
-        {
-            AllowAutoRedirect = true,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
-        })
-        {
-            Timeout = TimeSpan.FromSeconds(10),
-        };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("OpioidMultitool/1.0 (website tester)");
-
         using var cts = new CancellationTokenSource();
         var clock = Stopwatch.StartNew();
-        var scheduler = Task.Run(() => Schedule(http, cts.Token));
+        var running = Task.Run(() => _engine.RunAsync(cts.Token));
 
         bool firstDraw = true;
         int lastW = Term.Width, lastH = Term.Height;
@@ -160,7 +130,7 @@ internal sealed class WebsiteTester
 
         elapsed = clock.Elapsed;
         cts.Cancel();
-        try { scheduler.Wait(2000); } catch { }
+        try { running.Wait(2000); } catch { }
 
         // Show the final numbers until a key is pressed.
         Input.Drain();
@@ -175,83 +145,11 @@ internal sealed class WebsiteTester
         }
     }
 
-    private async Task Schedule(HttpClient http, CancellationToken ct)
-    {
-        var workers = new Task[Workers];
-        for (int i = 0; i < workers.Length; i++) workers[i] = Worker(http, ct);
-        try { await Task.WhenAll(workers); } catch { }
-    }
-
-    private async Task Worker(HttpClient http, CancellationToken ct)
-    {
-        while (!ct.IsCancellationRequested)
-        {
-            Interlocked.Increment(ref _inFlight);
-            try { await Send(http, ct); }
-            finally { Interlocked.Decrement(ref _inFlight); }
-        }
-    }
-
-    private async Task Send(HttpClient http, CancellationToken ct)
-    {
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            using var resp = await http.GetAsync(_uri, HttpCompletionOption.ResponseHeadersRead, ct);
-            int code = (int)resp.StatusCode;
-            string text = resp.ReasonPhrase ?? ((HttpStatusCode)code).ToString();
-            _incoming.Enqueue(new Result(DateTime.Now, code, text, sw.ElapsedMilliseconds, false, false));
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            // stopped by the user; don't count it
-        }
-        catch (TaskCanceledException)
-        {
-            _incoming.Enqueue(new Result(DateTime.Now, 0, "timed out (10s)", sw.ElapsedMilliseconds, true, false));
-        }
-        catch (HttpRequestException e)
-        {
-            _incoming.Enqueue(new Result(DateTime.Now, 0, Describe(e), sw.ElapsedMilliseconds, true, false));
-        }
-        catch (Exception e)
-        {
-            _incoming.Enqueue(new Result(DateTime.Now, 0, e.GetType().Name, sw.ElapsedMilliseconds, true, false));
-        }
-        finally
-        {
-            Interlocked.Decrement(ref _inFlight);
-        }
-    }
-
-    private static string Describe(HttpRequestException e) => e.HttpRequestError switch
-    {
-        HttpRequestError.NameResolutionError => "DNS lookup failed",
-        HttpRequestError.ConnectionError => "connection failed",
-        HttpRequestError.SecureConnectionError => "TLS/SSL error",
-        HttpRequestError.ResponseEnded => "connection closed early",
-        _ => e.InnerException?.Message ?? e.Message,
-    };
-
     private void Collect()
     {
-        while (_incoming.TryDequeue(out var r))
+        foreach (var r in _engine.Drain())
         {
-            if (r.Skipped) _skipped++;
-            else
-            {
-                _sent++;
-                if (r.Error) _failed++;
-                else
-                {
-                    if (r.Status < 400) _ok++; else _httpErrors++;
-                    _latLast = r.Ms;
-                    _latSum += r.Ms;
-                    _latCount++;
-                    _latMin = Math.Min(_latMin, r.Ms);
-                    _latMax = Math.Max(_latMax, r.Ms);
-                }
-            }
+            _stats.Apply(r);
             _log.Insert(0, r);
             if (_log.Count > MaxLog) _log.RemoveAt(_log.Count - 1);
         }
@@ -268,22 +166,22 @@ internal sealed class WebsiteTester
         const int col = 4;
         Header(sb, 1, w);
 
-        Field(sb, 4, col, w, "Target", _uri.ToString(), Value);
+        Field(sb, 4, col, w, "Target", _engine.Target.ToString(), Value);
         Field(sb, 6, col, w, "Status",
             (running ? "● RUNNING  " : "■ STOPPED  ") + $"{(int)elapsed.TotalMinutes:00}:{elapsed.Seconds:00}",
             running ? Good : Warn);
 
         Line(sb, 8);
         sb.Append(Term.MoveTo(8, col))
-          .Append(Stat("Sent", _sent, Value)).Append("   ")
-          .Append(Stat("OK", _ok, Good)).Append("   ")
-          .Append(Stat("HTTP errors", _httpErrors, _httpErrors > 0 ? Warn : Value)).Append("   ")
-          .Append(Stat("Failed", _failed, _failed > 0 ? Bad : Value));
-        if (_skipped > 0) sb.Append("   ").Append(Stat("Skipped", _skipped, Warn));
+          .Append(Stat("Sent", _stats.Sent, Value)).Append("   ")
+          .Append(Stat("OK", _stats.Ok, Good)).Append("   ")
+          .Append(Stat("HTTP errors", _stats.HttpErrors, _stats.HttpErrors > 0 ? Warn : Value)).Append("   ")
+          .Append(Stat("Failed", _stats.Failed, _stats.Failed > 0 ? Bad : Value));
+        if (_stats.Skipped > 0) sb.Append("   ").Append(Stat("Skipped", _stats.Skipped, Warn));
 
-        string lat = _latCount == 0
+        string lat = _stats.LatCount == 0
             ? "-"
-            : $"last {_latLast} ms   avg {_latSum / _latCount} ms   min {_latMin} ms   max {_latMax} ms";
+            : $"last {_stats.LatLast} ms   avg {_stats.LatSum / _stats.LatCount} ms   min {_stats.LatMin} ms   max {_stats.LatMax} ms";
         Field(sb, 9, col, w, "Latency", lat, Value);
 
         At(sb, 11, col, w, "Recent requests", Term.Fg(Title) + "\x1b[1m");
