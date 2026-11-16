@@ -21,8 +21,8 @@ internal sealed class MatrixRain
     private const float Decay = 0.925f;   // trail falloff per frame
     private const int FrameMs = 16;       // ~60 fps
 
-    private static readonly Rgb DarkRed = new(135, 0, 0);
-    private static readonly Rgb HeadRed = new(255, 55, 55);
+    private static readonly Rgb DarkRed = new(130, 0, 90);
+    private static readonly Rgb HeadRed = new(255, 110, 190);
 
     private readonly Random _rng = new();
     private readonly StringBuilder _sb = new(1 << 18);

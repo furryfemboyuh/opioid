@@ -38,14 +38,14 @@ internal static class TitleScreen
         "Exit",
     ];
 
-    private static readonly Rgb BannerTop = new(255, 45, 45);
-    private static readonly Rgb BannerBottom = new(115, 0, 0);
-    private static readonly Rgb Shadow = new(70, 0, 0);
-    private static readonly Rgb Grey = new(150, 150, 150);
-    private static readonly Rgb DimGrey = new(85, 85, 85);
-    private static readonly Rgb Red = new(185, 0, 0);
-    private static readonly Rgb BrightRed = new(255, 60, 60);
-    private static readonly Rgb SelectBg = new(90, 0, 0);
+    private static readonly Rgb BannerTop = new(255, 120, 200);
+    private static readonly Rgb BannerBottom = new(190, 30, 130);
+    private static readonly Rgb Shadow = new(100, 0, 75);
+    private static readonly Rgb Grey = new(210, 175, 215);
+    private static readonly Rgb DimGrey = new(125, 95, 130);
+    private static readonly Rgb Red = new(225, 70, 160);
+    private static readonly Rgb BrightRed = new(255, 155, 220);
+    private static readonly Rgb SelectBg = new(95, 0, 80);
 
     private static readonly string[] Banner = BuildBanner();
     private static readonly int BannerWidth = Banner.Max(l => l.Length);
@@ -117,7 +117,7 @@ internal static class TitleScreen
                     Draw(sel, status, 1f, fullClear: true);
                     continue;
                 }
-                status = $"{Options[activate]} isn't implemented yet.";
+                status = $"{Options[activate]} isn't ready yet... ( ´•ω•` )";
             }
 
             Draw(sel, status, 1f, fullClear: false);
@@ -179,8 +179,8 @@ internal static class TitleScreen
         }
 
         row++;
-        Centered(sb, row++, w, "M  U  L  T  I  T  O  O  L", Term.Fg(Grey, f));
-        Centered(sb, row++, w, new string('─', Math.Min(BannerWidth, w - 2)), Term.Fg(Shadow, f));
+        Centered(sb, row++, w, "✦  M U L T I T O O L  ✦", Term.Fg(Grey, f));
+        Centered(sb, row++, w, new string('·', Math.Min(BannerWidth, w - 2)), Term.Fg(Shadow, f));
         row++;
 
         // --- Offline warning ---
@@ -224,7 +224,7 @@ internal static class TitleScreen
         {
             int fr = h - 1;
             Line(sb, fr);
-            string hints = "↑/↓ navigate   ENTER select   ESC exit";
+            string hints = "↑/↓ navigate   ENTER select   ESC exit  :3";
             sb.Append(Term.MoveTo(fr, 1)).Append(Term.Fg(DimGrey, f)).Append(Version);
             int hc = w - hints.Length - 2;
             if (hc > Version.Length + 3)

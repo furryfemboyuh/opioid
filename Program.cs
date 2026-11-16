@@ -20,7 +20,7 @@ internal static class Program
         try
         {
             MatrixRain.Run();
-            TypingIntro.Run("made by ", "opioid");
+            TypingIntro.Run("made by ", "furryfemboyuh :3");
             TitleScreen.Run();
         }
         finally

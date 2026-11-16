@@ -7,9 +7,9 @@ namespace OpioidMultitool.Scenes;
 /// <summary>Types out "made by opioid" in the middle of the screen with a blinking cursor.</summary>
 internal static class TypingIntro
 {
-    private static readonly Rgb PrefixColor = new(215, 215, 215);
-    private static readonly Rgb AccentColor = new(200, 0, 0);
-    private static readonly Rgb CursorColor = new(255, 40, 40);
+    private static readonly Rgb PrefixColor = new(220, 190, 230);
+    private static readonly Rgb AccentColor = new(255, 110, 190);
+    private static readonly Rgb CursorColor = new(255, 150, 215);
 
     public static void Run(string prefix, string accent)
     {
