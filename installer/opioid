@@ -7,6 +7,7 @@
 #
 #   opioid             update (if possible) and run
 #   opioid --update    only check for / download the newest version
+#   opioid --update --wait  keep checking until a new release appears, then download it
 #   opioid --versions  list cached versions
 #   opioid --uninstall remove the launcher and all cached versions
 
@@ -50,21 +51,42 @@ case "${1:-}" in
         exit 0 ;;
 esac
 
-# --- Ask GitHub for the newest release ---
-status="online"
-tag=""
-url=""
-json="$(curl -fsSL --max-time 6 -H 'Accept: application/vnd.github+json' \
-        "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null)" || status="offline"
+# --update / --wait may come in either order.
+update_only=0; wait=0
+for a in "${1:-}" "${2:-}"; do
+    case "$a" in --update) update_only=1 ;; --wait) wait=1 ;; esac
+done
+if [ "$wait" = 1 ] && [ "$update_only" = 0 ]; then
+    red "--wait only works together with --update:  opioid --update --wait"
+    exit 1
+fi
 
-if [ "$status" = "online" ]; then
+status="online"; tag=""; url=""
+
+# Ask GitHub for the newest release; sets status/tag/url.
+check_github() {
+    status="online"; tag=""; url=""
+    local json
+    json="$(curl -fsSL --max-time 6 -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null)" || { status="offline"; return; }
     tag="$(printf '%s\n' "$json" | sed -n 's/^ *"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)"
     url="$(printf '%s\n' "$json" | grep -o "\"browser_download_url\": *\"[^\"]*/$ASSET\"" |
            sed 's/.*"\(https[^"]*\)"$/\1/' | head -n1)"
     # Only accept sane tag names (they become directory names).
-    if ! [[ "$tag" =~ ^[A-Za-z0-9._-]+$ ]] || [ -z "$url" ]; then
-        status="offline"
-    fi
+    if ! [[ "$tag" =~ ^[A-Za-z0-9._-]+$ ]] || [ -z "$url" ]; then status="offline"; fi
+}
+
+if [ "$wait" = 1 ]; then
+    baseline="$(latest_cached)"
+    dim "Waiting for a release newer than ${baseline:-<none>} (Ctrl+C to cancel)..."
+    while true; do
+        check_github
+        if [ "$status" = "online" ] && [ "$tag" != "$baseline" ]; then break; fi
+        sleep 10
+    done
+    echo "New release detected: $tag"
+else
+    check_github
 fi
 
 # --- Download it if we don't have it yet ---
@@ -92,7 +114,7 @@ if [ "$status" = "offline" ]; then
     fi
 fi
 
-[ "${1:-}" = "--update" ] && { echo "Opioid Multitool $tag ($status)"; exit 0; }
+[ "$update_only" = 1 ] && { echo "Opioid Multitool $tag ($status)"; exit 0; }
 
 export OPIOID_VERSION="$tag"
 export OPIOID_UPDATE_STATUS="$status"

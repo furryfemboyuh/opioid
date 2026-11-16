@@ -13,9 +13,7 @@ namespace OpioidMultitool.Scenes;
 /// </summary>
 internal sealed class WebsiteTester
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(0.1);   // 10 requests every 0.1 ms
-    private const int MaxInFlight = 16384; // slow site: skip a tick instead of piling up requests
-    private const int Burst = 10;         // requests fired per interval
+    private const int Workers = 1024;    // concurrent requests; throughput = Workers / RTT
     private const int MaxLog = 200;
 
     private static readonly Rgb Title = new(255, 45, 45);
@@ -179,25 +177,18 @@ internal sealed class WebsiteTester
 
     private async Task Schedule(HttpClient http, CancellationToken ct)
     {
-        long period = (long)(Interval.TotalMilliseconds * Stopwatch.Frequency / 1000.0);
-        long next = Stopwatch.GetTimestamp();
+        var workers = new Task[Workers];
+        for (int i = 0; i < workers.Length; i++) workers[i] = Worker(http, ct);
+        try { await Task.WhenAll(workers); } catch { }
+    }
 
+    private async Task Worker(HttpClient http, CancellationToken ct)
+    {
         while (!ct.IsCancellationRequested)
         {
-            for (int i = 0; i < Burst && !ct.IsCancellationRequested; i++)
-            {
-                if (Volatile.Read(ref _inFlight) >= MaxInFlight)
-                {
-                    _incoming.Enqueue(new Result(DateTime.Now, 0, "skipped (too many requests still waiting)", 0, false, true));
-                    continue;
-                }
-                Interlocked.Increment(ref _inFlight);
-                _ = Send(http, ct);
-            }
-
-            next += period;
-            while (Stopwatch.GetTimestamp() < next && !ct.IsCancellationRequested)
-                Thread.SpinWait(50);
+            Interlocked.Increment(ref _inFlight);
+            try { await Send(http, ct); }
+            finally { Interlocked.Decrement(ref _inFlight); }
         }
     }
 
