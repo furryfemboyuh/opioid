@@ -320,7 +320,7 @@ internal sealed class WebsiteTester
 
     private static void Header(StringBuilder sb, int row, int w)
     {
-        Centered(sb, row, w, "T E S T   W E B S I T E", Term.Fg(Title) + "\x1b[1m");
+        Centered(sb, row, w, "D D O S", Term.Fg(Title) + "\x1b[1m");
         Centered(sb, row + 1, w, new string('─', Math.Min(46, w - 2)), Term.Fg(Shadow));
     }
 
