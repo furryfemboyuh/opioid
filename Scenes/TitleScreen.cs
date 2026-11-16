@@ -29,7 +29,7 @@ internal static class TitleScreen
 
     private static readonly string[] Options =
     [
-        "Test Website",
+        "DDOS",
         "Placeholder Option 2",
         "Placeholder Option 3",
         "Placeholder Option 4",

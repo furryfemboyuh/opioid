@@ -13,7 +13,7 @@ namespace OpioidMultitool.Scenes;
 /// </summary>
 internal sealed class WebsiteTester
 {
-    private const int IntervalMs = 500;   // 2 requests per second
+    private const int IntervalMs = 1;   // 2 requests per second
     private const int MaxInFlight = 4;    // slow site: skip a tick instead of piling up requests
     private const int MaxLog = 200;
 
