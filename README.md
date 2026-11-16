@@ -5,7 +5,7 @@ Console multitool with a matrix-rain intro, typed splash and a title menu.
 ## Install (Linux)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/furryfemboyuh/opioid-multitool/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/furryfemboyuh/opioid/main/install.sh | bash
 ```
 
 Then run `opioid` from any terminal. Each launch downloads the newest release

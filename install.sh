@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Installs the `opioid` command for the current user (no sudo needed).
 #
-#   curl -fsSL https://raw.githubusercontent.com/furryfemboyuh/opioid-multitool/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/furryfemboyuh/opioid/main/install.sh | bash
 #
 # or, from a clone of the repo:  ./install.sh
 
 set -euo pipefail
 
-REPO="${OPIOID_REPO:-furryfemboyuh/opioid-multitool}"
+REPO="${OPIOID_REPO:-furryfemboyuh/opioid}"
 BIN="$HOME/.local/bin"
 TARGET="$BIN/opioid"
 

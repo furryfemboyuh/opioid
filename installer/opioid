@@ -12,7 +12,7 @@
 
 set -uo pipefail
 
-REPO="${OPIOID_REPO:-furryfemboyuh/opioid-multitool}"
+REPO="${OPIOID_REPO:-furryfemboyuh/opioid}"
 ASSET="OpioidMultitool-linux-x64"
 DATA="${XDG_DATA_HOME:-$HOME/.local/share}/opioid"
 VERSIONS="$DATA/versions"
