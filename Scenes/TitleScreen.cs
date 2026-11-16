@@ -29,7 +29,7 @@ internal static class TitleScreen
 
     private static readonly string[] Options =
     [
-        "Placeholder Option 1",
+        "Test Website",
         "Placeholder Option 2",
         "Placeholder Option 3",
         "Placeholder Option 4",
@@ -108,6 +108,14 @@ internal static class TitleScreen
                 {
                     Animate(sel, "", fadeIn: false);
                     return;
+                }
+                if (activate == 0)
+                {
+                    WebsiteTester.Run();
+                    Input.Drain();
+                    status = "";
+                    Draw(sel, status, 1f, fullClear: true);
+                    continue;
                 }
                 status = $"{Options[activate]} isn't implemented yet.";
             }
